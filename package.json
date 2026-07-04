@@ -1,0 +1,60 @@
+{
+  "name": "@zakkster/lite-lerp",
+  "author": "Zahary Shinikchiev <shinikchiev@yahoo.com>",
+  "version": "1.0.6",
+  "description": "Zero-dependency game math primitives — lerp, clamp, smoothstep, easings, angle interpolation. Tree-shakeable pure functions.",
+  "type": "module",
+  "main": "./Lerp.js",
+  "module": "./Lerp.js",
+  "types": "./Lerp.d.ts",
+  "exports": {
+    ".": {
+      "types": "./Lerp.d.ts",
+      "node": "./Lerp.jsß",
+      "import": "./Lerp.js",
+      "default": "./Lerp.js"
+    }
+  },
+  "files": [
+    "Lerp.js",
+    "Lerp.d.ts",
+    "llms.txt",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/PeshoVurtoleta/lite-lerp#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PeshoVurtoleta/lite-lerp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/PeshoVurtoleta/lite-lerp/issues",
+    "email": "shinikchiev@yahoo.com"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/PeshoVurtoleta"
+  },
+  "sideEffects": false,
+  "devDependencies": {
+    "vitest": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "keywords": [
+    "lerp",
+    "clamp",
+    "smoothstep",
+    "easing",
+    "math",
+    "game",
+    "interpolation",
+    "damp",
+    "remap"
+  ]
+}
