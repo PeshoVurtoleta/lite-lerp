@@ -1,7 +1,7 @@
 {
   "name": "@zakkster/lite-lerp",
   "author": "Zahary Shinikchiev <shinikchiev@yahoo.com>",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Zero-dependency game math primitives — lerp, clamp, smoothstep, easings, angle interpolation. Tree-shakeable pure functions.",
   "type": "module",
   "main": "./Lerp.js",
@@ -10,7 +10,7 @@
   "exports": {
     ".": {
       "types": "./Lerp.d.ts",
-      "node": "./Lerp.jsß",
+      "node": "./Lerp.js",
       "import": "./Lerp.js",
       "default": "./Lerp.js"
     }
