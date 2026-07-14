@@ -1,9 +1,11 @@
 # @zakkster/lite-lerp
 
 [![npm version](https://img.shields.io/npm/v/@zakkster/lite-lerp.svg?style=for-the-badge&color=latest)](https://www.npmjs.com/package/@zakkster/lite-lerp)
+[![sponsor](https://img.shields.io/badge/sponsor-PeshoVurtoleta-ea4aaa.svg?logo=github)](https://github.com/sponsors/PeshoVurtoleta)
 [![npm bundle size](https://img.shields.io/bundlephobia/minzip/@zakkster/lite-lerp?style=for-the-badge)](https://bundlephobia.com/result?p=@zakkster/lite-lerp)
 [![npm downloads](https://img.shields.io/npm/dm/@zakkster/lite-lerp?style=for-the-badge&color=blue)](https://www.npmjs.com/package/@zakkster/lite-lerp)
 [![npm total downloads](https://img.shields.io/npm/dt/@zakkster/lite-lerp?style=for-the-badge&color=blue)](https://www.npmjs.com/package/@zakkster/lite-lerp)
+![Tree-Shakeable](https://img.shields.io/badge/tree--shakeable-yes-brightgreen)
 ![TypeScript](https://img.shields.io/badge/TypeScript-Types-informational)
 ![Zero Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
@@ -79,6 +81,17 @@ const hp = clamp(currentHP, 0, maxHP);
 | `easeInOut(t)` | Cubic ease-in-out |
 | `lerpAngle(a, b, t)` | Shortest-path angle interpolation (degrees) |
 | `lerpAngleRad(a, b, t)` | Shortest-path angle interpolation (radians) |
+| `lerpUnclamped(a, b, t)` | Explicit alias for `lerp` — see the note below |
+| **v1.1.0** | |
+| `moveToward(a, b, maxDelta)` | Step toward b by at most maxDelta, never overshooting |
+| `wrap(v, min, max)` | Wrap into `[min, max)` — toroidal worlds, hue, angles |
+| `repeat(t, len)` | Positive modulo — always in `[0, len)` |
+| `pingpong(t, len)` | Triangle wave `0 → len → 0` |
+| `snap(v, step)` | Round to the nearest multiple of step |
+| `deadzone(v, threshold)` | Zero inside the threshold, pass-through outside |
+| `smootherstep(min, max, val)` | Quintic Hermite — C² continuous, no acceleration snap |
+
+> **On `lerpUnclamped`.** This is *not* the Unity distinction. In Unity, `Mathf.Lerp` clamps `t` and `Mathf.LerpUnclamped` does not. Here **`lerp` does not clamp either** — `lerp(0, 10, 2) === 20`. The alias exists only to make extrapolation explicit at the call site. If you want Unity's clamping `Lerp`, clamp it yourself: `lerp(a, b, clamp(t, 0, 1))`.
 
 ## Recipes
 
@@ -104,17 +117,28 @@ button.opacity = lerp(button.opacity, isVisible ? 1 : 0, 0.1);
 
 ### Health Bar with Color Gradient
 
-Map HP percentage to a smooth green → yellow → red transition:
+`lite-lerp` gives you the number. For the colour, reach for the peer library — because a naive RGB lerp from green to red dips through a muddy dark brown, and perceived brightness swings wildly across the bar:
 
 ```javascript
-const t = inverseLerp(0, maxHP, currentHP);
-const barWidth = lerp(0, 200, t);
-const color = t > 0.5 ? lerp(255, 255, t) : lerp(255, 0, t * 2); // green → red
+import { inverseLerp, lerp, clamp } from '@zakkster/lite-lerp';
+import { lerpOklch, toCssOklch } from '@zakkster/lite-color';
+
+const t = clamp(inverseLerp(0, maxHP, currentHP), 0, 1);
+
+bar.style.width = `${lerp(0, 200, t)}px`;
+
+// OKLCH holds lightness and chroma constant and moves only the hue, so the bar
+// keeps the same perceived brightness from full health to nearly dead.
+const danger  = { l: 0.7, c: 0.25, h: 25 };   // red
+const healthy = { l: 0.7, c: 0.25, h: 145 };  // green
+bar.style.background = toCssOklch(lerpOklch(danger, healthy, t));
 ```
+
+Numbers from `lite-lerp`, perception from [`@zakkster/lite-color`](https://github.com/PeshoVurtoleta/lite-color).
 
 ### Angle Blending for 2D Sprite Rotation
 
-`lerpAngle` always takes the shortest path — no more sprites spinning 350° the wrong way:
+`lerpAngle` always takes the shortest path — no more sprites spinning 350° the wrong way. The delta is wrapped into `[-180, 180)`, so this holds for **any** input, including un-normalized accumulators like `rotation += spin * dt` that run past 360°:
 
 ```javascript
 sprite.rotation = lerpAngle(sprite.rotation, targetAngle, 0.1);
@@ -160,6 +184,56 @@ const t = clamp(inverseLerp(startTime, startTime + 300, now), 0, 1);
 dialog.y = lerp(screenHeight, centerY, easeOut(t));
 dialog.opacity = t;
 ```
+
+### Input Smoothing (deadzone + moveToward + damp)
+
+```javascript
+import { deadzone, moveToward, damp, mapRange, clamp } from '@zakkster/lite-lerp';
+
+// Raw deadzone is discontinuous: output jumps from 0 to ±0.15 at the boundary.
+// Rescale the remainder so the stick ramps smoothly out of the dead centre.
+const DZ = 0.15;
+const stick = (v) => (deadzone(v, DZ) === 0 ? 0 : Math.sign(v) * mapRange(Math.abs(v), DZ, 1, 0, 1));
+
+// Speed-capped movement, then frame-rate independent smoothing.
+player.x = moveToward(player.x, player.x + stick(gamepad.axes[0]) * 300, maxSpeed * dt);
+camera.x = damp(camera.x, player.x, 6, dt);
+```
+
+### Looping Animation (pingpong + smootherstep)
+
+```javascript
+import { pingpong, smootherstep, lerp } from '@zakkster/lite-lerp';
+
+const t = smootherstep(0, 1, pingpong(elapsed * 0.5, 1));   // eased breathe, 0→1→0
+sprite.scale = lerp(1, 1.2, t);
+```
+
+### Grid Snapping (snap + wrap)
+
+```javascript
+import { snap, wrap } from '@zakkster/lite-lerp';
+
+node.x = snap(pointer.x, 16);                 // 16px grid
+enemy.x = wrap(enemy.x + vx * dt, 0, world.width);   // toroidal world
+hue = wrap(hue + 1, 0, 360);                  // hue never leaves [0, 360)
+```
+
+---
+
+## Bundle Size
+
+The `< 1KB minified` claim is **enforced, not aspirational**. `npm run size` builds the full export surface with esbuild and fails if it exceeds 1024 bytes:
+
+```
+✅  size gate passed — 997 B minified / 1024 B budget (97.4%), 27 B headroom
+```
+
+It runs on `prepublishOnly`, so the claim cannot silently go stale. Adding v1.1.0's eight primitives took the surface from 590 B to 997 B — the gate is now the thing that decides whether a ninth one is affordable.
+
+Because `sideEffects: false` and every export is a pure function, a real import costs far less than the full surface: `lerp` + `clamp` is **80 B**, `lerpAngle` is **107 B**.
+
+---
 
 ## Division Safety
 

@@ -22,3 +22,33 @@ export declare const easeInOut: (t: number) => number;
 export declare const lerpAngle: (a: number, b: number, t: number) => number;
 /** Shortest-path angle interpolation in radians. */
 export declare const lerpAngleRad: (a: number, b: number, t: number) => number;
+
+// ── v1.1.0 ──
+
+/** Wraps v into the half-open interval [min, max). Returns min when max <= min. */
+export declare const wrap: (v: number, min: number, max: number) => number;
+
+/** Positive modulo — always in [0, len). Unity's Mathf.Repeat. Returns 0 when len <= 0. */
+export declare const repeat: (t: number, len: number) => number;
+
+/** Triangle wave, 0 -> len -> 0 with period 2*len. Unity's Mathf.PingPong. Returns 0 when len <= 0. */
+export declare const pingpong: (t: number, len: number) => number;
+
+/** Moves a toward b by at most maxDelta, never overshooting. A non-positive maxDelta is a no-op. */
+export declare const moveToward: (a: number, b: number, maxDelta: number) => number;
+
+/** Rounds v to the nearest multiple of step. Returns v when step is 0 or non-finite. */
+export declare const snap: (v: number, step: number) => number;
+
+/** Input deadzone: 0 inside the threshold, v (sign preserved) outside. Raw — the output is discontinuous at the boundary. */
+export declare const deadzone: (v: number, threshold: number) => number;
+
+/** Quintic (Perlin) smoothstep. C2 continuous — no acceleration snap at the ends. */
+export declare const smootherstep: (min: number, max: number, val: number) => number;
+
+/**
+ * Explicit alias for `lerp`. NOT the Unity distinction: `lerp` does not clamp
+ * either. For Unity's clamping Lerp, clamp t at the call site.
+ */
+export declare const lerpUnclamped: (a: number, b: number, t: number) => number;
+

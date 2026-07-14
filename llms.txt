@@ -42,3 +42,32 @@ const hue = lerpAngle(350, 10, 0.5);  // 0 (shortest path)
 
 ## Part of the @zakkster ecosystem
 Zero-GC, deterministic, tree-shakeable micro-libraries for high-performance web presentation.
+
+## v1.1.0 additions (all pure, all tree-shakeable)
+wrap(v, min, max)            -> wraps into the half-open [min, max). Returns min when max <= min.
+repeat(t, len)               -> positive modulo, always in [0, len). Unity Mathf.Repeat. 0 when len <= 0.
+pingpong(t, len)             -> triangle wave 0 -> len -> 0, period 2*len. Unity Mathf.PingPong. 0 when len <= 0.
+moveToward(a, b, maxDelta)   -> steps toward b by at most maxDelta, never overshoots. Non-positive maxDelta is a no-op.
+snap(v, step)                -> rounds to the nearest multiple of step. Returns v when step is 0 or non-finite.
+deadzone(v, threshold)       -> 0 inside the threshold, v (sign preserved) outside. RAW: discontinuous at the boundary.
+                                For a smooth ramp, rescale with mapRange(Math.abs(v), threshold, 1, 0, 1).
+smootherstep(min, max, val)  -> quintic Hermite, C2 continuous. Smoother than smoothstep at the ends.
+lerpUnclamped(a, b, t)       -> alias for lerp. NOT the Unity distinction: lerp does NOT clamp either.
+                                lerp(0, 10, 2) === 20. For Unity's clamping Lerp: lerp(a, b, clamp(t, 0, 1)).
+
+## v1.1.0 correctness fix -- lerpAngle / lerpAngleRad
+The delta is now wrapped into [-180, 180) (resp. [-PI, PI)) via wrap(), instead of a fixed
++540 offset. The old form silently took the LONG way round once |b - a| exceeded 360 degrees,
+which happens with any un-normalized accumulator (rotation += spin * dt). lerpAngle(720, 90)
+used to sweep -270; it now sweeps +90. Bit-identical on normalized [0, 360) input -- no regression.
+The 180-degree antipode is a tie and resolves deterministically to -180.
+
+## Recipes
+Health bar: lite-lerp for the number, @zakkster/lite-color (lerpOklch) for the colour --
+a naive RGB green->red lerp dips through muddy brown and swings perceived brightness.
+Input smoothing: deadzone (rescaled via mapRange) -> moveToward (speed cap) -> damp (smoothing).
+Looping: pingpong + smootherstep. Grid/world: snap + wrap.
+
+## Bundle size
+"< 1KB minified" is enforced by `npm run size` (esbuild, real bytes, 1024 B budget), wired into
+prepublishOnly. Full surface: 997 B. Tree-shaken: lerp+clamp = 80 B, lerpAngle = 107 B.

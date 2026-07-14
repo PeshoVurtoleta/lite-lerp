@@ -1,8 +1,8 @@
 {
   "name": "@zakkster/lite-lerp",
   "author": "Zahary Shinikchiev <shinikchiev@yahoo.com>",
-  "version": "1.0.7",
-  "description": "Zero-dependency game math primitives — lerp, clamp, smoothstep, easings, angle interpolation. Tree-shakeable pure functions.",
+  "version": "1.1.0",
+  "description": "Zero-dependency game math primitives — lerp, clamp, damp, smoothstep, easings, shortest-path angle interpolation, moveToward, wrap, repeat, pingpong, snap, deadzone. Tree-shakeable pure functions, <1KB minified.",
   "type": "module",
   "main": "./Lerp.js",
   "module": "./Lerp.js",
@@ -23,7 +23,9 @@
   ],
   "scripts": {
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "size": "node scripts/size.mjs",
+    "prepublishOnly": "npm test && npm run size"
   },
   "license": "MIT",
   "homepage": "https://github.com/PeshoVurtoleta/lite-lerp#readme",
@@ -41,6 +43,7 @@
   },
   "sideEffects": false,
   "devDependencies": {
+    "esbuild": "^0.21.0",
     "vitest": "^1.0.0"
   },
   "engines": {
@@ -55,6 +58,15 @@
     "game",
     "interpolation",
     "damp",
-    "remap"
+    "remap",
+    "moveToward",
+    "wrap",
+    "pingpong",
+    "repeat",
+    "snap",
+    "deadzone",
+    "smootherstep",
+    "unity",
+    "mathf"
   ]
 }
